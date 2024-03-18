@@ -1,0 +1,16 @@
+.wrap > form {
+    margin-top: 20px;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+
+.wrap > form label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+.wrap > form textarea {
+    width: 100%;
+    height: 150px;
+}
