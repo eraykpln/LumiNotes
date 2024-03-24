@@ -40,7 +40,7 @@ function luminotes_admin_page() {
             });
         </script>
         <form id="luminotes_add_note_form">
-    <textarea id="luminotes_note_content" placeholder="Write a new note..."></textarea>
+    <textarea id="luminotes_note_content" placeholder="Write a new note...."></textarea>
     <input id="luminotes_note_title" type="text" placeholder="Title" required>
 <input id="luminotes_note_status" type="text" placeholder="Status" required>
 <input id="luminotes_note_amount" type="number" placeholder="Amount" step="0.01" required>

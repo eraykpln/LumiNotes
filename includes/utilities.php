@@ -8,4 +8,4 @@ if( !defined('ABSPATH') )
 function get_plugin_options($name)
 {
       return carbon_get_theme_option( $name );
-}
+}add_action('wp_ajax_add_user_note', 'function_to_handle_add_user_note');

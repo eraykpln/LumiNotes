@@ -9,7 +9,8 @@
 // Admin sayfası ve form işleme
 include_once plugin_dir_path(__FILE__) . 'includes/admin/admin-page.php';
 include_once plugin_dir_path(__FILE__) . 'includes/admin/handle-form-submission.php';
-
+//
+//
 // Kullanıcıların notlarını görüntülemek için shortcode
 include_once plugin_dir_path(__FILE__) . 'includes/shortcode-display.php';
 include_once plugin_dir_path(__FILE__) . 'includes/display_notes_shortcode.php';
@@ -39,7 +40,7 @@ function luminotes_get_user_notes() {
         $output .= '<li>' . esc_html($note['content']) . ' - <em>' . esc_html($note['date']) . '</em></li>';
     }
     $output .= '</ul>';
-    $output .= '<button>Add New Note</button>'; // Placeholder for adding new note functionality
+    $output .= '<button>Add New Not3</button>'; // Placeholder for adding new note functionality
 
     echo $output;
     wp_die(); // This is required to terminate immediately and return a proper response
@@ -91,28 +92,65 @@ function luminotes_add_admin_menus() {
 add_action('admin_menu', 'luminotes_add_admin_menus');
 
 function lumirecords_admin_page() {
+    //
+// Not düzenleme modunu kontrol et
+ if (isset($_GET['edit']) && $_GET['edit'] == 'true' && isset($_GET['note_index']) && isset($_GET['user_id'])) {
+        $note_index = intval($_GET['note_index']);
+        $user_id = intval($_GET['user_id']);
+        $notes = get_user_meta($user_id, 'luminotes_notes', true);
+        $note_to_edit = $notes[$note_index];
+
+        echo '<h2>Notu Düzenle</h2>';
+        echo '<form action="" method="post">';
+        wp_nonce_field('luminotes_edit_note_action', 'luminotes_nonce');
+        echo '<input type="hidden" name="action" value="edit_note">';
+        echo '<input type="hidden" name="note_index" value="' . esc_attr($note_index) . '">';
+        echo '<input type="hidden" name="user_id" value="' . esc_attr($user_id) . '">';
+        echo '<p><label>Not Başlığı:</label><br /><input type="text" name="note_title" value="' . esc_attr($note_to_edit['title']) . '"></p>';
+        echo '<p><label>Not İçeriği:</label><br /><textarea name="note_content">' . $note_to_edit['content'] . '</textarea></p>';
+        // Status alanı eklendi
+        echo '<p><label>Durum:</label><br /><input type="text" name="note_status" value="' . esc_attr($note_to_edit['status'] ?? 'new') . '"></p>';
+        echo '<p><input type="submit" value="Notu Güncelle"></p>';
+        echo '</form>';
+        return;
+}
+    
+    //
     ?>
     <div class="wrap">
         <h2>LumiRecords</h2>
         <table class="widefat fixed" cellspacing="0">
             <thead>
                 <tr>
-                    <th id="columnname" class="manage-column column-columnname" scope="col">User ID</th>
-                    <th id="columnname" class="manage-column column-columnname" scope="col">User Name</th>
-                    <th id="columnname" class="manage-column column-columnname" scope="col">Notes</th>
+                    <th>User ID</th>
+                    <th>User Name</th>
+                    <th>Notes</th>
+                    <th>Actions</th> <!-- Eylemler için yeni sütun -->
                 </tr>
             </thead>
             <tbody>
                 <?php
-                $users = get_users(); // Tüm kullanıcıları al
+                $users = get_users();
                 foreach ($users as $user) {
                     $notes = get_user_meta($user->ID, 'luminotes_notes', true);
-                    $notes_output = is_array($notes) ? implode('<br>', array_map(function($note) { return esc_html($note['content']); }, $notes)) : 'No notes';
-                    echo '<tr>';
-                    echo '<td>' . esc_html($user->ID) . '</td>';
-                    echo '<td>' . esc_html($user->display_name) . '</td>';
-                    echo '<td>' . $notes_output . '</td>';
-                    echo '</tr>';
+                    if(is_array($notes)){
+                        foreach($notes as $index => $note){
+                            echo '<tr>';
+                            echo '<td>' . esc_html($user->ID) . '</td>';
+                            echo '<td>' . esc_html($user->display_name) . '</td>';
+                            echo '<td>' . esc_html($note['content']) . '</td>';
+                            // Düzenleme bağlantısını ekleyin
+                            echo '<td><a href="'.admin_url('admin.php?page=lumirecords&edit=true&note_index='.$index.'&user_id='.$user->ID).'">Düzenle</a></td>';
+                            echo '</tr>';
+                        }
+                    } else {
+                        echo '<tr>';
+                        echo '<td>' . esc_html($user->ID) . '</td>';
+                        echo '<td>' . esc_html($user->display_name) . '</td>';
+                        echo '<td>No notes</td>';
+                        echo '<td></td>';
+                        echo '</tr>';
+                    }
                 }
                 ?>
             </tbody>
@@ -120,3 +158,29 @@ function lumirecords_admin_page() {
     </div>
     <?php
 }
+function luminotes_handle_note_editing() {
+    if (isset($_POST['action'], $_POST['note_index'], $_POST['user_id'], $_POST['note_title'], $_POST['note_content'], $_POST['note_status'], $_POST['luminotes_nonce']) && $_POST['action'] == 'edit_note' && wp_verify_nonce($_POST['luminotes_nonce'], 'luminotes_edit_note_action')) {
+        $note_index = intval($_POST['note_index']);
+        $user_id = intval($_POST['user_id']);
+        $note_title = sanitize_text_field($_POST['note_title']);
+        // Not içeriği ve status, kullanıcı girdisi olarak doğrudan kabul ediliyor
+        $note_content = $_POST['note_content']; // HTML içeriği kabul ediliyor
+        $note_status = $_POST['note_status']; // Status, doğrudan kabul ediliyor
+
+        $notes = get_user_meta($user_id, 'luminotes_notes', true);
+        if (isset($notes[$note_index])) {
+            $notes[$note_index]['title'] = $note_title;
+            $notes[$note_index]['content'] = $note_content;
+            $notes[$note_index]['status'] = $note_status;
+
+            update_user_meta($user_id, 'luminotes_notes', $notes);
+
+            // Başarı mesajı
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-success is-dismissible"><p>Not başarıyla güncellendi.</p></div>';
+            });
+        }
+    }
+}
+add_action('admin_init', 'luminotes_handle_note_editing');
+

@@ -8,7 +8,7 @@ function luminotes_display_user_notes() {
         if (!empty($notes)) {
             
            $output = '<table>';
-$output .= '<tr><th>Title</th><th>Note</th><th>Amount</th><th>Status</th><th>Date</th></tr>'; // Table headers for 'Note' and 'Date'
+$output .= '<tr><th style="text-align: start;">Title</th><th style="text-align: start;">Note</th><th style="text-align: start;">Status</th><th style="text-align: start;">Amount</th><th style="text-align: start;">Date</th></tr>'; // Table headers for 'Note' and 'Date'
 foreach ($notes as $note) {
     $output .= '<style>
                 table {
@@ -40,7 +40,7 @@ $output .= '</table>';
             $output = '<p>No notes found.</p>';
         }
     } else {
-        $output = '<p>Please login to see your notes.</p>';
+        $output = '<p>Please <a href="https://lumiasoft.com/login/">login </a> to see your notes.</p>';
     }
 
     return $output;
@@ -53,7 +53,7 @@ function luminotes_add_note_form_for_user() {
     if (!is_user_logged_in()) {
         return '<p>Please login to add notes.</p>';
     }
-
+/*
     // Form HTML'i
     $form = '<form id="luminotes-add-note-form" method="post">';
     $form .= wp_nonce_field('luminotes_add_note_action', 'luminotes_nonce', true, false); // Güvenlik için nonce ekleyin
@@ -91,7 +91,8 @@ function luminotes_add_note_form_for_user() {
         });
     </script>';
 
-    return $form;
-}
+    return $form;*/
+    
+} 
 
 add_shortcode('luminotes_add_note_user', 'luminotes_add_note_form_for_user');

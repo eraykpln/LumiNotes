@@ -33,7 +33,7 @@ function luminotes_handle_form_submission() {
 
         // Display success notice
         add_action('admin_notices', function() {
-            echo '<div class="notice notice-success is-dismissible"><p>Note saved successfully.</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>Note saved successfullyy.</p></div>';
         });
     }
 }
